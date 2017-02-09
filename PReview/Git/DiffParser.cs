@@ -8,49 +8,44 @@ namespace PReview
 {
     public class DiffParser
     {
-        private readonly string _diffFilePath;
         private readonly string _solutionDir;
 
         public DiffParser(string solutionDir)
         {
             _solutionDir = solutionDir;
-            _diffFilePath = Path.Combine(_solutionDir, "diff.txt");
         }
 
-        public async Task<Dictionary<string, UnifiedDiff>> ParseAsync()
+        public async Task<Dictionary<string, UnifiedDiff>> ParseAsync(TextReader reader)
         {
             var unifiedDiffs = new List<UnifiedDiff>();
             var lines = new List<string>();
 
             var unifiedDiffParser = new UnifiedDiffParser(3);
 
-            using (var reader = File.OpenText(_diffFilePath))
+            var n = 0;
+
+            string line;
+            while ((line = await reader.ReadLineAsync()) != null)
             {
-                var n = 0;
-
-                string line;
-                while ((line = await reader.ReadLineAsync()) != null)
+                if (line.StartsWith("diff --git"))
                 {
-                    if (line.StartsWith("diff --git"))
+                    var unifiedDiff = new UnifiedDiff(line);
+                    if (n > 0)
                     {
-                        var unifiedDiff = new UnifiedDiff(line);
-                        if (n > 0)
-                        {
-                            unifiedDiffs[unifiedDiffs.Count - 1].HunkRanges.AddRange(unifiedDiffParser.Parse(lines));
-                        }
-
-                        n++;
-
-                        unifiedDiffs.Add(unifiedDiff);
-
-                        lines.Clear();
-
-                        lines.Add(line);
+                        unifiedDiffs[unifiedDiffs.Count - 1].HunkRanges.AddRange(unifiedDiffParser.Parse(lines));
                     }
-                    else
-                    {
-                        lines.Add(line);
-                    }
+
+                    n++;
+
+                    unifiedDiffs.Add(unifiedDiff);
+
+                    lines.Clear();
+
+                    lines.Add(line);
+                }
+                else
+                {
+                    lines.Add(line);
                 }
             }
 

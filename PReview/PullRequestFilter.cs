@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
-using PReview.Git;
+using PReview.GitHub;
 
 namespace PReview
 {
@@ -16,34 +17,39 @@ namespace PReview
     {
         private readonly IVsHierarchyItemCollectionProvider _hierarchyCollectionProvider;
         private readonly SVsServiceProvider _svcProvider;
+        private readonly SessionManager _sessionManager;
         public Dictionary<string, UnifiedDiff> UnifiedDiffs = new Dictionary<string, UnifiedDiff>();
 
         [ImportingConstructor]
-        public PullRequestFilterProvider(SVsServiceProvider serviceProvider, IVsHierarchyItemCollectionProvider hierarchyCollectionProvider)
+        public PullRequestFilterProvider(SVsServiceProvider serviceProvider, IVsHierarchyItemCollectionProvider hierarchyCollectionProvider,
+            SessionManager sessionManager)
         {
             _svcProvider = serviceProvider;
             _hierarchyCollectionProvider = hierarchyCollectionProvider;
+            _sessionManager = sessionManager;
         }
 
         protected override HierarchyTreeFilter CreateFilter()
         {
-            return new PullRequestFilter(_svcProvider, _hierarchyCollectionProvider, this);
+            return new PullRequestFilter(_svcProvider, _hierarchyCollectionProvider, _sessionManager, this);
         }
 
         private sealed class PullRequestFilter : HierarchyTreeFilter
         {
             private readonly IVsHierarchyItemCollectionProvider _hierarchyCollectionProvider;
+            private readonly SessionManager _sessionManager;
             private readonly PullRequestFilterProvider _pullRequestFilterProvider;
             private readonly DiffParser _diffParser;
 
-            public PullRequestFilter(IServiceProvider serviceProvider, IVsHierarchyItemCollectionProvider hierarchyCollectionProvider, PullRequestFilterProvider pullRequestFilterProvider)
+            public PullRequestFilter(IServiceProvider serviceProvider, IVsHierarchyItemCollectionProvider hierarchyCollectionProvider,
+                SessionManager sessionManager, PullRequestFilterProvider pullRequestFilterProvider)
             {
                 _hierarchyCollectionProvider = hierarchyCollectionProvider;
+                _sessionManager = sessionManager;
                 _pullRequestFilterProvider = pullRequestFilterProvider;
 
                 var dte = (DTE)serviceProvider.GetService(typeof(DTE));
                 var solutionDir = Path.GetDirectoryName(dte.Solution.FullName);
-
                 _diffParser = new DiffParser(solutionDir);
             }
 
@@ -55,11 +61,33 @@ namespace PReview
                 var root = HierarchyUtilities.FindCommonAncestor(rootItems);
                 var sourceItems = await _hierarchyCollectionProvider.GetDescendantsAsync(root.HierarchyIdentity.NestedHierarchy, CancellationToken);
 
-                //_pullRequestFilterProvider.UnifiedDiffs.Clear();
-
-                _pullRequestFilterProvider.UnifiedDiffs = await _diffParser.ParseAsync();
+                using (var reader = FindPatchReader())
+                {
+                    if (reader != null)
+                    {
+                        _pullRequestFilterProvider.UnifiedDiffs = await _diffParser.ParseAsync(reader);
+                    }
+                    else
+                    {
+                        _pullRequestFilterProvider.UnifiedDiffs.Clear();
+                    }
+                }
 
                 return await _hierarchyCollectionProvider.GetFilteredHierarchyItemsAsync(sourceItems, ShouldIncludeInFilter, CancellationToken);
+            }
+
+
+            private TextReader FindPatchReader()
+            {
+                var diffUrl = _sessionManager.DiffUrl;
+                if (diffUrl != null)
+                {
+                    var webClient = new WebClient();
+                    var stream = webClient.OpenRead(diffUrl);
+                    return new StreamReader(stream);
+                }
+
+                return null;
             }
 
             // Returns true if filters hierarchy item name for given filter; otherwise, false</returns>

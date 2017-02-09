@@ -9,8 +9,9 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <UseCodebase>true</UseCodebase>
+    <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Label ="Launch Visual Studio Exp">
+  <PropertyGroup Label="Launch Visual Studio Exp">
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)\devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
@@ -32,7 +33,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PReview</RootNamespace>
     <AssemblyName>PReview</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
@@ -68,6 +69,8 @@
     <Compile Include="GitDiffMarginCommand.cs" />
     <Compile Include="GitDiffMarginCommandHandler.cs" />
     <Compile Include="GitDiffMarginTextViewOptions.cs" />
+    <Compile Include="GitHub\GitHubImportAttribute.cs" />
+    <Compile Include="GitHub\SessionManager.cs" />
     <Compile Include="Git\DiffFormatNames.cs" />
     <Compile Include="Git\DiffParser.cs" />
     <Compile Include="Git\GitDiffParser.cs" />
@@ -144,6 +147,18 @@
     <Reference Include="GalaSoft.MvvmLight.Platform, Version=5.2.0.37226, Culture=neutral, PublicKeyToken=5f873c45e98af8a1, processorArchitecture=MSIL">
       <HintPath>..\packages\MvvmLightLibs.5.2.0.0\lib\net45\GalaSoft.MvvmLight.Platform.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="GitHub.Exports">
+      <HintPath>..\..\..\github\VisualStudio\build\Debug\GitHub.Exports.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GitHub.Exports.Reactive">
+      <HintPath>..\..\..\github\VisualStudio\build\Debug\GitHub.Exports.Reactive.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GitHub.Extensions">
+      <HintPath>..\..\..\github\VisualStudio\build\Debug\GitHub.Extensions.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.CSharp" />
@@ -273,6 +288,27 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Reactive.Core, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.Core.3.1.1\lib\net46\System.Reactive.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.Interfaces.3.1.1\lib\net45\System.Reactive.Interfaces.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.Linq, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.Linq.3.1.1\lib\net46\System.Reactive.Linq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.PlatformServices, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.PlatformServices.3.1.1\lib\net46\System.Reactive.PlatformServices.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.Windows.Threading, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.Windows.Threading.3.1.1\lib\net45\System.Reactive.Windows.Threading.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\MvvmLightLibs.5.2.0.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
